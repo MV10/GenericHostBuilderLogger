@@ -10,9 +10,7 @@ namespace Microsoft.Extensions.Logging
     {
         public static HostBuilderLogger Logger { get; private set; }
 
-        internal static Action<ILoggingBuilder> PreferredLoggerConfigDelegate = null;
-
-        internal static Action<HostBuilderContext, ILoggingBuilder> PreferredLoggerConfigDelegateWithContext = null;
+        public static Action<IHostBuilder> LoggerConfigurationDelegate = null;
 
         private ConcurrentQueue<HostBuilderLoggerMessage> cache = new ConcurrentQueue<HostBuilderLoggerMessage>();
 
@@ -34,39 +32,29 @@ namespace Microsoft.Extensions.Logging
 
         public async Task TerminalEmitCachedMessages(string[] args)
         {
-            try
-            {
-                await EmitWithPreferredLoggerConfig(args);
-            }
-            catch
+            if (LoggerConfigurationDelegate == null)
             {
                 await EmitWithDefaultLoggerConfig(args);
             }
-        }
-
-        private async Task EmitWithPreferredLoggerConfig(string[] args)
-        {
-            var builder = Host.CreateDefaultBuilder(args);
-
-            if (PreferredLoggerConfigDelegate == null && PreferredLoggerConfigDelegateWithContext == null)
-                throw new Exception();
-
-            if (PreferredLoggerConfigDelegateWithContext != null)
-                builder.ConfigureLogging(PreferredLoggerConfigDelegateWithContext);
-
-            if (PreferredLoggerConfigDelegate != null)
-                builder.ConfigureLogging(PreferredLoggerConfigDelegate);
-
-            await builder
-                .ConfigureLogging(log =>
+            else
+            {
+                try
                 {
-                    log.SetMinimumLevel(LogLevel.Trace);
-                })
-                .ConfigureServices(svc =>
+                    var builder = Host.CreateDefaultBuilder(args);
+                    LoggerConfigurationDelegate(builder);
+                    await builder
+                        .ConfigureLogging(log =>
+                        {
+                            log.SetMinimumLevel(LogLevel.Trace);
+                        })
+                        .AddTerminalHostBuilderLogger()
+                        .RunConsoleAsync();
+                }
+                catch
                 {
-                    svc.AddHostedService<HostBuilderLoggerTerminatorService>();
-                })
-                .RunConsoleAsync();
+                    await EmitWithDefaultLoggerConfig(args);
+                }
+            }
         }
 
         private async Task EmitWithDefaultLoggerConfig(string[] args)
@@ -76,10 +64,7 @@ namespace Microsoft.Extensions.Logging
                 {
                     log.SetMinimumLevel(LogLevel.Trace);
                 })
-                .ConfigureServices(svc =>
-                {
-                    svc.AddHostedService<HostBuilderLoggerTerminatorService>();
-                })
+                .AddTerminalHostBuilderLogger()
                 .RunConsoleAsync();
         }
 

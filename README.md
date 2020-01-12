@@ -80,6 +80,25 @@ host.ConfigureLoggingWithHostBuilderLogger(log =>
 });
 ```
 
+## Serilog Support
+
+My preferred logging system is [Serilog](https://github.com/serilog), so I wanted to be able to support that as well. Do not call `AddHostBuilderLogger` or `ConfigureLoggingWithHostBuilderLogger`, instead call `UseSerilogWithHostBuilderLogger` which supports the optional [inline configuration syntax]():
+
+```csharp
+var host = Host.CreateDefaultBuilder(args);
+host.UseSerilogWithHostBuilderLogger((ctx, log) =>
+{
+    log
+        .MinimumLevel.Debug()
+        .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
+        .Enrich.FromLogContext()
+        .WriteTo.Console();
+});
+HostBuilderLogger.Logger.LogInformation("Everything looks OK so far...");
+```
+
+Critically, that inline syntax also allows configuring Serilog externally (for example, with an appconfig.json file), and like the default logger, as long as the configuration succeeds, even terminal-emit logging will then use Serilog.
+
 ## Available Log Methods
 
 The static `HostBuilderLogger.Logger` property is available immediately after calling `AddHostBuilderLogger` or `ConfigureLoggingWithHostBuilderLogger`. The methods provided by this class are a subset of the full-blown logging system:
@@ -171,6 +190,6 @@ HostBuilderLoggerMessage.TimestampFormat = "o";
 
 ## How It Works
 
-The basic `AddHostBuilderLogger` call creates an instance of the `HostBuilderLogger` which internally stores log messages in a thread-safe queue collection. Then it registeres a simple Generic Host `BackgroundService` called `HostBuilderLoggerEmitterService`. When the host signals application startup via the `ApplicationStarting` token provided by `IHostApplicationLifetime`, the service triggers the logger to dump the queue to the live logger provided by the host.
+The basic `AddHostBuilderLogger` call creates an instance of the `HostBuilderLogger` which internally stores log messages in a thread-safe queue collection. Then it registers a simple Generic Host `BackgroundService` called `HostBuilderLoggerEmitterService`. When the host signals application startup via the `ApplicationStarting` token provided by `IHostApplicationLifetime`, the service triggers the logger to dump the queue to the live logger provided by the host.
 
 In the event of a failure, calling `TerminalEmitCachedMessages` builds a separate, bare-bones Generic Host. If logger configuration was provided, first it attempts to build a host using that configuration, and if that fails, it falls back to the default configuration. This process registers a similar `BackgroundService` called `HostBuilderLoggerTerminatorService` which again triggers the logger to dump the queue in response to application startup, but after the dump is complete it calls `StopApplication`.

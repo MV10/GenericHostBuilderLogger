@@ -21,7 +21,7 @@ namespace Microsoft.Extensions.Logging
 
         public static IHostBuilder ConfigureLoggingWithHostBuilderLogger(this IHostBuilder host, Action<ILoggingBuilder> configureLogging)
         {
-            HostBuilderLogger.PreferredLoggerConfigDelegate = configureLogging;
+            HostBuilderLogger.LoggerConfigurationDelegate = (builder) => builder.ConfigureLogging(configureLogging);
             host.AddHostBuilderLogger();
             host.ConfigureLogging(configureLogging);
             return host;
@@ -29,7 +29,7 @@ namespace Microsoft.Extensions.Logging
 
         public static IHostBuilder ConfigureLoggingWithHostBuilderLogger(this IHostBuilder host, Action<HostBuilderContext, ILoggingBuilder> configureLogging)
         {
-            HostBuilderLogger.PreferredLoggerConfigDelegateWithContext = configureLogging;
+            HostBuilderLogger.LoggerConfigurationDelegate = (builder) => builder.ConfigureLogging(configureLogging);
             host.AddHostBuilderLogger();
             host.ConfigureLogging(configureLogging);
             return host;
