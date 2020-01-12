@@ -2,6 +2,8 @@
 
 When using the Generic Host with .NET Core 3.x, logging isn't available until the Host Builder is actually built. It is treated like any other service in that regard. This means applications have no reliable, standardized way of reporting progress and problems during the critical phase of application startup. I am of the opinion this is not acceptable. In any serious production-usage scenario, it's important to have that information available for troubleshooting and other support requirements. This package provides a basic level of startup logging support with good configurability and high reliability.
 
+Support is also available for my preferred logging system, [Serilog](https://github.com/serilog).
+
 ## Quick Start
 
 After adding the `Microsoft.Extensions.Hosting` package, a minimal console-based Generic Host program looks like this:
@@ -43,7 +45,7 @@ If the application starts normally, as soon as the Generic Host signals applicat
 
 ## Logger Configuration
 
-Most applications need more than the default logger configuration. This package is able to capture and attempt to re-use the logger configuration provided to the original Generic Host. Instead of calling `AddHostBuilderLogger`, provide your usual logger configuration lambda to `ConfigureLoggerWithHostBuilderLogger`. Notice we can even log messages from within these builder delegates:
+Most applications need more than the default logger configuration. This package is able to intercept and attempt to re-use the logger configuration provided to the original `IHostBuilder`. Instead of calling `AddHostBuilderLogger`, provide your usual logger configuration lambda to `ConfigureLoggerWithHostBuilderLogger`. Notice we can even log messages from within these builder delegates:
 
 ```csharp
 try
@@ -82,7 +84,7 @@ host.ConfigureLoggingWithHostBuilderLogger(log =>
 
 ## Serilog Support
 
-My preferred logging system is [Serilog](https://github.com/serilog), so I wanted to be able to support that as well. Do not call `AddHostBuilderLogger` or `ConfigureLoggingWithHostBuilderLogger`, instead call `UseSerilogWithHostBuilderLogger` which supports the optional [inline configuration syntax]():
+When logging to Serilog, do not call `AddHostBuilderLogger` or `ConfigureLoggingWithHostBuilderLogger`. Instead call `UseSerilogWithHostBuilderLogger`. This method optionally supports Serilog's [inline configuration syntax](https://github.com/serilog/serilog-extensions-hosting#inline-initialization):
 
 ```csharp
 var host = Host.CreateDefaultBuilder(args);
@@ -97,7 +99,25 @@ host.UseSerilogWithHostBuilderLogger((ctx, log) =>
 HostBuilderLogger.Logger.LogInformation("Everything looks OK so far...");
 ```
 
-Critically, that inline syntax also allows configuring Serilog externally (for example, with an appconfig.json file), and like the default logger, as long as the configuration succeeds, even terminal-emit logging will then use Serilog.
+Critically, that inline syntax also allows configuring Serilog using `IConfiguration` sources (such as an appconfig.json file and environment variables), and like the default logger, as long as the configuration succeeds, even app-failure logging will then use Serilog. 
+
+You can also use Serilog's traditional static configuration:
+
+```csharp
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateLogger();
+
+try
+{
+    var host = Host.CreateDefaultBuilder(args);
+    host.UseSerilogWithHostBuilderLogger();
+    HostBuilderLogger.Logger.LogInformation("Everything looks OK so far...");
+    // etc...
+```
 
 ## Available Log Methods
 
