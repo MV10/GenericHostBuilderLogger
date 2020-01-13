@@ -1,9 +1,37 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Jon McGuire</Authors>
+    <Company />
+    <Description>Robust logging during .NET Generic Host's HostBuilder configuration stage.</Description>
+    <Version>1.0.0</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>McGuireV10.GenericHostBuilderLogger</PackageId>
+    <PackageTags>GenericHost Logging IHostBuilder ILogger</PackageTags>
+    <RepositoryUrl>https://github.com/MV10/GenericHostBuilderLogger</RepositoryUrl>
+    <AssemblyName>McGuireV10.GenericHostBuilderLogger</AssemblyName>
+    <RootNamespace>McGuireV10.GenericHostBuilderLogger</RootNamespace>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://mcguirev10.com/2020/01/12/logging-during-application-startup.html</PackageProjectUrl>
+    <Copyright>Copyright 2020 per Apache 2.0 License Terms</Copyright>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath></OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath></OutputPath>
+  </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.0" />
   </ItemGroup>

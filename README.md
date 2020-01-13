@@ -6,6 +6,12 @@ Support is also available for my preferred logging system, [Serilog](https://git
 
 Everything you need is right here in the README, but if you want to go a bit deeper, screenshots and explanations of the sample code are available in [this article](https://mcguirev10.com/2020/01/12/logging-during-application-startup.html).
 
+## NuGet Packages
+
+* .NET Core 3.1
+  * [McGuireV10.GenericHostBuilderLogger 1.0.0](https://www.nuget.org/packages/McGuireV10.GenericHostBuilderLogger/1.0.0)
+  * [McGuireV10.GenericHostBuilderLogger.Serilog 1.0.0](https://www.nuget.org/packages/McGuireV10.GenericHostBuilderLogger.Serilog/1.0.0)
+
 ## Quick Start
 
 After adding the `Microsoft.Extensions.Hosting` package, a minimal console-based Generic Host program looks like this:
@@ -144,7 +150,7 @@ This is just one of several screenshots available in the accompanying [article](
 
 ![success](https://mcguirev10.com/assets/2020/01-12/successfulrun_default.png)
 
-The output in response to one of several possible failure scenarios looks like this:
+This is the output (this time with Serilog) in response to one of several possible failure scenarios:
 
 ![failure](https://mcguirev10.com/assets/2020/01-12/basicexception.png)
 
